@@ -1,9 +1,11 @@
 source 'https://rubygems.org'
 
+gem 'awesome_print'
+
 group :plugins do
-  gemspec
-#  gemspec
-#  gem 'vagrant-centos7_fix', path: '.'
+ gemspec
+ # gemspec
+ # gem 'vagrant-centos7_fix', path: '.'
 end
 
 group :development do

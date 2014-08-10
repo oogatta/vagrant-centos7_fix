@@ -1,3 +1,4 @@
+require 'awesome_print'
 require "set"
 require "tempfile"
 
@@ -10,6 +11,9 @@ module VagrantPlugins
     include Vagrant::Util
 
     def self.configure_networks(machine, networks)
+      ap machine
+      ap networks
+
       network_scripts_dir = machine.guest.capability("network_scripts_dir")
 
       virtual = false
@@ -45,13 +49,19 @@ module VagrantPlugins
         end
       end
 
+      ap interface_names
+
       # Accumulate the configurations to add to the interfaces file as well
       # as what interfaces we're actually configuring since we use that later.
       interfaces = Set.new
       networks.each do |network|
-        interface = interface_names[network[:interface]]
+        index  = network[:interface]
+        index -= 1 if virtual
+        interface = interface_names[index]
+        ap interface
         interfaces.add(interface)
         network[:device] = interface
+        ap network
 
         # Remove any previous vagrant configuration in this network
         # interface's configuration files.
@@ -77,13 +87,15 @@ module VagrantPlugins
       # each specifically, we avoid reconfiguring p7p (the NAT interface) so
       # SSH never dies.
       interfaces.each do |interface|
-        retryable(on: Vagrant::Errors::VagrantError, tries: 3, sleep: 2) do
-        machine.communicate.sudo("cat /tmp/vagrant-network-entry_#{interface} >> #{network_scripts_dir}/ifcfg-#{interface}")
-        machine.communicate.sudo("/sbin/ifdown #{interface}", error_check: true)
-        machine.communicate.sudo("/sbin/ifup #{interface}")
-      end
+          retryable(on: Vagrant::Errors::VagrantError, tries: 3, sleep: 2) do
+          machine.communicate.sudo("cat /tmp/vagrant-network-entry_#{interface} >> #{network_scripts_dir}/ifcfg-#{interface}")
+          machine.communicate.sudo("/sbin/ifdown #{interface}", error_check: true)
+          machine.communicate.sudo("/sbin/ifup #{interface}")
+        end
 
-      machine.communicate.sudo("rm /tmp/vagrant-network-entry_#{interface}")
+        machine.communicate.sudo("rm /tmp/vagrant-network-entry_#{interface}")
+      end
     end
   end
 end
+

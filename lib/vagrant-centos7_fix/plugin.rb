@@ -20,7 +20,7 @@ module VagrantPlugins
       end
 
       guest_capability('centos7', 'configure_networks') do
-        require 'patched_fedora_network'
+        require 'vagrant-centos7_fix/patched_fedora_network'
         ::VagrantPlugins::PatchedFedoraNetwork
       end
 
