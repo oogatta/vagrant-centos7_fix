@@ -22,6 +22,8 @@ module VagrantPlugins
         virtual = true if result.chomp == '4'
       end
 
+      ap virtual
+
       if virtual
         machine.communicate.sudo("ls /sys/class/net | grep -v lo") do |_, result|
           interface_names = result.split("\n")
@@ -56,7 +58,8 @@ module VagrantPlugins
       interfaces = Set.new
       networks.each do |network|
         index  = network[:interface]
-        index -= 1 if virtual
+        index -= 1 unless virtual
+        ap index
         interface = interface_names[index]
         ap interface
         interfaces.add(interface)
